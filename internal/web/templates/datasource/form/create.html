@@ -1,0 +1,92 @@
+{{ define "form-datasource_create" }}
+<div class="card" style="max-width: 26rem;"
+  hx-get="/htmx/form/success"
+  hx-trigger="datasource-create-success from:body"
+  hx-target="this"
+  hx-swap="outerHTML"
+>
+  <div class="card-body">
+    <!-- Form Header -->
+    <div>
+      <div class="d-flex justify-content-between align-items-center gap-2">
+        <h3>New Datasource</h3>
+        <i class="bi bi-cloud-plus" style="font-size: 30px;"></i>
+      </div>
+      <p>
+        A datasource is a unique PostgreSQL database which the 
+        engine can append results to. You must not treat the 
+        resulting data as safe, and are responsible for 
+        ensuring the integrity of the data yourself.
+      </p>
+    </div>
+
+    <!-- Form Content -->
+    <div class="mb-3">
+      <label for="form-datasource-create_name" class="form-label">Name</label>
+      <input type="text" class="form-control" id="form-datasource-create_name" name="form-datasource-create_name" placeholder="Enter datasource name">
+      <p class="text-muted">
+        This is the name of your datasource. It should be unique and descriptive.
+      </p>
+    </div>
+
+    <div class="mb-3">
+      <label for="form-datasource-create_conn" class="form-label">Database Connection URL</label>
+      <input type="text" class="form-control" id="form-datasource-create_conn" name="form-datasource-create_conn" placeholder="postgresql://username:password@localhost:5432/mydatabase?sslmode=require">
+      <p class="text-muted">
+        This is the connection URL for your PostgreSQL database. It should include the username, password, host, port, and database name.
+      </p>
+    </div>
+
+    <div class="mb-3">
+      <label for="form-datasource-create_table" class="form-label">Database Table Name</label>
+      <input type="text" class="form-control" id="form-datasource-create_conn" name="form-datasource-create_table" placeholder="table_name">
+      <p class="text-muted">
+        This is the name of the table in your PostgreSQL database where the engine will append results. It should be unique within the database.
+      </p>
+    </div>
+
+        <div class="mb-3">
+      <label for="form-datasource-create_column" class="form-label">Database Column Name</label>
+      <input type="text" class="form-control" id="form-datasource-create_conn" name="form-datasource-create_column" placeholder="column_name">
+      <p class="text-muted">
+        This is the name of the column in your PostgreSQL database where the engine will append results. It should be unique within the table.
+      </p>
+    </div>
+
+    <button onclick="PutDatasourceCreateFormData()" type="submit" class="btn btn-dark">Create Datasource</button>
+  </div>
+</div>
+
+<script>
+  function GetDatasourceCreateFormData() {
+    var datasource = {
+      name: document.getElementsByName("form-datasource-create_name")[0].value,
+      database_conn_string: document.getElementsByName("form-datasource-create_conn")[0].value,
+      database_table_name: document.getElementsByName("form-datasource-create_table")[0].value,
+      database_column_name: document.getElementsByName("form-datasource-create_column")[0].value,
+    };
+
+    return datasource;
+  }
+
+  function PutDatasourceCreateFormData() {
+    var datasource = GetDatasourceCreateFormData();
+    fetch("/api/ds", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(datasource)
+    }).then(response => {
+      if (response.ok) {
+          htmx.trigger("body", "datasource-create-success");
+      } else {
+        console.error("Failed to create datasource");
+      }
+    }).catch(error => {
+      console.error("Error creating datasource:", error);
+    });
+  }
+</script>
+{{ end }}
+{{ template "form-datasource_create" . }}

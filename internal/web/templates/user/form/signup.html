@@ -1,0 +1,60 @@
+{{ define "form-user_signup" }}
+<div id="form-user_signup" class="card p-3" style="width: 28rem;"
+  hx-get="/htmx/form/success"
+  hx-trigger="sign-up_success from:body"
+  hx-target="this"
+  hx-swap="outerHTML"
+>
+  <div class="form-header">
+    <h3>Sign Up</h3>
+    <p>
+      Staircase is an open-source web analysis platform with an integrated
+      PostgreSQL-native driver for targeted web information retrieval.
+    </p>
+  </div>
+
+  <div class="mb-3">
+    <label>Username</label>
+    <input type="text" class="form-control" name="sign-up_username" placeholder="Enter username">
+  </div>
+  <div class="mb-3">
+    <label>Password</label>
+    <input type="password" class="form-control" name="sign-up_password" placeholder="Enter password">
+  </div>
+
+  <div class="">
+    <button onclick="PostSignupFormData()" type="submit" class="btn btn-dark">Submit</button>
+  </div>
+</div>
+
+<script>
+  function GetSignupFormData() {
+    var user = {
+      username: document.getElementsByName("sign-up_username")[0].value,
+      password: document.getElementsByName("sign-up_password")[0].value,
+    };
+
+    return user;
+  }
+
+  async function PostSignupFormData() {
+    var user = GetSignupFormData();
+    fetch("/api/user", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(user)
+    }).then(response => {
+      if (response.ok) {
+          htmx.trigger("body", "sign-up_success");
+      } else {
+        console.error("Failed to sign up user");
+      }
+    }).catch(error => {
+      console.error("Error signing up user:", error);
+    });
+  }
+</script>
+{{ end }}
+{{ template "form-user_signup" . }}

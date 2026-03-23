@@ -1,0 +1,30 @@
+{{ define "content" }}
+
+<div class="container-fluid">
+  <!-- Testing Container -->
+  <div class="row">
+    <div class="col">
+      <h3>Staircase</h3>
+      <p>Your tool for real-time direct web-analysis.</p>
+      <ul>
+        <li>A general purpose web analysis engine with an easy-to-use schema.</li>
+        <li>A built-in postgresql integration.</li>
+        <li>Open-Source!</li>
+      </ul>
+
+      <button class="btn btn-dark" 
+        hx-get="/htmx/form/signup"
+        hx-trigger="click"
+        hx-target="#form-destination"
+        hx-swap="innerHTML"
+      >Sign Up</button>
+    </div> 
+
+    <div id="form-destination" class="col p-2"
+      hx-get="/htmx/form/login"
+      hx-trigger="load"
+    ></div>
+  </div>
+</div>
+
+{{ end }}
