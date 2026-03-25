@@ -3,6 +3,24 @@
   <!-- Testing Container -->
   <div class="row">
     <div class="col" hx-get="/htmx/form/datasource" hx-trigger="load"></div>
+    <div class="d-flex flex-direction-column">
+      <div class="col" hx-get="/htmx/ds/list" hx-trigger="load, every 2s"></div>
+      <div class="col" hx-get="/htmx/job/list" hx-trigger="load, every 2s"></div>
+    </div>
   </div>
 </div>
+
+<div class="modal fade" id="modal-container" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div id="modal-content-target" class="modal-content">
+      </div>
+  </div>
+</div>
+
+<script>
+document.body.addEventListener("showModal", function() {
+    const modal = new bootstrap.Modal(document.getElementById('modal-container'));
+    modal.show();
+});
+</script>
 {{ end }}

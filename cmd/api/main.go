@@ -68,11 +68,29 @@ func main() {
 		Handler:  routes.HandleUserPOST,
 	})
 
+	router.Add(pbf.RouteOptions{
+		Endpoint: "/user/session",
+		Method:   http.MethodPost,
+		Handler:  routes.HandleSessionPOST,
+	})
+
 	// Datasource related routes
 	router.Add(pbf.RouteOptions{
 		Endpoint: "/ds",
 		Method:   http.MethodPut,
 		Handler:  routes.HandleDatasourcePUT,
+	})
+
+	router.Add(pbf.RouteOptions{
+		Endpoint: "/ds",
+		Method:   http.MethodGet,
+		Handler:  routes.HandleDatasourceGET,
+	})
+
+	router.Add(pbf.RouteOptions{
+		Endpoint: "/ds",
+		Method:   http.MethodDelete,
+		Handler:  routes.HandleDatasourceDELETE,
 	})
 
 	if err := router.Start(); err != nil {

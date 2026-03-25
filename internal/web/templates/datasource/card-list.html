@@ -1,0 +1,24 @@
+{{ define "card-list" }}
+<h3>Your Datasources</h3>
+<div class="d-flex flex-wrap gap-3 mt-3">
+{{ range .Sources }}
+  <div class="card" style="max-width: 16rem; cursor: pointer;"
+    hx-get="/htmx/ds"
+    hx-include="[id='{{.ID}}']"
+    hx-trigger="click"
+    onmouseover="this.style.backgroundColor='#007bff'; this.style.color='white';"
+    onmouseout="this.style.backgroundColor=''; this.style.color='';"
+  >
+    <input type="hidden" id="{{ .ID }}" name="id" value="{{ .ID }}">
+    <div class="card-body">
+      <h5 class="card-title">{{ .Name }}</h5>
+    </div>
+  </div>
+{{ end }}
+</div>
+{{ end }}
+
+<script>
+</script>
+{{ template "card-list" . }}
+

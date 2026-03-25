@@ -17,6 +17,22 @@ var (
 	Sessions = make(map[uuid.UUID]uuid.UUID)
 )
 
+func HandleSessionPOST(w http.ResponseWriter, r *http.Request) error {
+	var session types.Session
+	if err := json.NewDecoder(r.Body).Decode(&session); err != nil {
+		core.Logger.Error("tried to decode request body for session validation, but failed", "error", err)
+		return err
+	}
+
+	_, ok := Sessions[session.Session]
+	if !ok {
+		http.Error(w, "invalid session", http.StatusUnauthorized)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	return nil
+}
+
 func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
