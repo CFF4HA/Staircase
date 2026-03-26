@@ -70,7 +70,7 @@ func HandleJobGET(w http.ResponseWriter, r *http.Request) error {
 
 	if request.ID != uuid.Nil {
 		job := &types.DatabaseJob{}
-		if tx := db.Where("owner_id = ?", owner_id).Preload("Staircases").First(&job, "id = ?", request.ID); tx.Error != nil {
+		if tx := db.Where("owner_id = ?", owner_id).Preload("Metadata").Preload("Staircases").First(&job, "id = ?", request.ID); tx.Error != nil {
 			core.Logger.Error("error fetching job", "error", tx.Error)
 			return tx.Error
 		}
@@ -78,7 +78,7 @@ func HandleJobGET(w http.ResponseWriter, r *http.Request) error {
 		response = job
 	} else {
 		var jobs []types.DatabaseJob
-		if tx := db.Where("owner_id = ?", owner_id).Where(&request).Preload("Staircases").Find(&jobs); tx.Error != nil {
+		if tx := db.Where("owner_id = ?", owner_id).Where(&request).Preload("Metadata").Preload("Staircases").Find(&jobs); tx.Error != nil {
 			core.Logger.Error("error fetching jobs", "error", tx.Error)
 			return tx.Error
 		}

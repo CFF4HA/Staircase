@@ -68,7 +68,7 @@ func HandleDatasourceGET(w http.ResponseWriter, r *http.Request) error {
 	var response any
 	if request.ID != uuid.Nil {
 		ds := &types.DatabaseDatasource{}
-		if tx := db.Where("owner_id = ?", user).First(&ds, "id = ?", request.ID); tx.Error != nil {
+		if tx := db.Where("owner_id = ?", user).Preload("Metadata").First(&ds, "id = ?", request.ID); tx.Error != nil {
 			core.Logger.Error("error fetching datasource", "error", tx.Error)
 			return tx.Error
 		}
@@ -76,7 +76,7 @@ func HandleDatasourceGET(w http.ResponseWriter, r *http.Request) error {
 		response = ds
 	} else {
 		var dss []types.DatabaseDatasource
-		if tx := db.Where("owner_id = ?", user).Where(&request).Find(&dss); tx.Error != nil {
+		if tx := db.Where("owner_id = ?", user).Where(&request).Preload("Metadata").Find(&dss); tx.Error != nil {
 			core.Logger.Error("error fetching datasources", "error", tx.Error)
 			return tx.Error
 		}
