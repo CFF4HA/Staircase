@@ -1,0 +1,20 @@
+{{ define "input-staircase_code" }}
+<div class="input-group">
+  <span class="input-group-text">
+    <code>{ }</code>
+  </span>
+  <textarea 
+    class="form-control font-family-monospace staircase-input-value" 
+    rows="3" 
+    placeholder="Type your schema here..."
+    style="font-family: var(--bs-font-monospace); font-size: 0.875rem;"
+  ></textarea>
+  <button class="btn btn-outline-secondary" type="button" id="addFieldBtn"
+    hx-get="/htmx/form/job/staircase-input"
+    hx-trigger="click"
+  >
+    <i class="bi bi-plus-lg"></i>
+  </button>
+</div>
+{{ end }}
+{{ template "input-staircase_code" . }}

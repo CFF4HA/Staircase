@@ -64,17 +64,26 @@ func main() {
 		IncludeBaseTemplate: false,
 	})
 
-	app.RegisterTemplate("/htmx/form/job", "job/form/create.html", pff.TemplateRegistrationOpts{
+	form_job := app.RegisterTemplate("/htmx/form/job", "job/form/create.html", pff.TemplateRegistrationOpts{
 		IncludeBaseTemplate: false,
 	})
+	form_job.RegisterBridge("Sources", bridges.BridgeDatasources{})
 
-	// HTMX Summary Components
+	app.RegisterTemplate("/htmx/form/job/staircase-input", "job/form/staircase-input.html", pff.TemplateRegistrationOpts{})
+
+	// HTMX Datasource
 	ds_list := app.RegisterTemplate("/htmx/ds/list", "datasource/card-list.html", pff.TemplateRegistrationOpts{})
-	ds_list.RegisterBridge("Sources", bridges.BridgeCardList{})
+	ds_list.RegisterBridge("Sources", bridges.BridgeDatasources{})
 
-	// HTMX API Based Routes
 	ds := app.RegisterTemplate("/htmx/ds", "datasource/ds.html", pff.TemplateRegistrationOpts{})
-	ds.RegisterBridge("Source", bridges.BridgeCard{})
+	ds.RegisterBridge("Source", bridges.BridgeDatasource{})
+
+	// HTMX Jobs
+	job_list := app.RegisterTemplate("/htmx/job/list", "job/card-list.html", pff.TemplateRegistrationOpts{})
+	job_list.RegisterBridge("Jobs", bridges.BridgeJobs{})
+
+	job := app.RegisterTemplate("/htmx/job", "job/job.html", pff.TemplateRegistrationOpts{})
+	job.RegisterBridge("Job", bridges.BridgeJob{})
 
 	if err := app.Start(); err != nil {
 		panic(err)
