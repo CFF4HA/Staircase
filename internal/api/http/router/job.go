@@ -12,32 +12,42 @@ import (
 	"github.com/CFF4HA/Staircase/internal/types"
 )
 
-type JobPutRequest struct {
-	DatabaseConnString string                    `json:"database_conn_string"`
-	DatabaseTableName  string                    `json:"database_table_name"`
-	DatabaseColumnName string                    `json:"database_column_name"`
-	Staircases         []types.DatabaseStaircase `json:"staircases"`
-}
-
 func HandleJobPUT(w http.ResponseWriter, r *http.Request) error {
 	db := database.Database()
 
-	var request JobPutRequest
+	var request types.DatabaseJob
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		return err
 	}
 
-	var job types.DatabaseJob
-	job.ID = uuid.New()
-	for _, staircase := range request.Staircases {
-		job.Staircases = append(job.Staircases, types.DatabaseStaircase{
-			ID:          uuid.New(),
-			JobId:       job.ID,
-			Declaration: staircase.Declaration,
-		})
+	owner_id, err := getUserIdFromSession(r)
+	if err != nil {
+		core.Logger.Error("error fetching user id from session", "error", err)
+		return err
 	}
 
-	return db.Create(&job).Error
+	uid := uuid.New()
+	request.ID = uid
+	request.OwnerId = owner_id
+
+	job_tx := db.Create(&request)
+	if job_tx.Error != nil {
+		core.Logger.Error("error creating job", "error", job_tx.Error)
+		return job_tx.Error
+	}
+
+	job_meta := &types.DatabaseJobMetadata{
+		ID:    uuid.New(),
+		JobId: request.ID,
+	}
+	if tx := db.Create(&job_meta); tx.Error != nil {
+		job_tx.Rollback()
+
+		core.Logger.Error("error creating job metadata", "error", tx.Error)
+		return tx.Error
+	}
+
+	return nil
 }
 
 func HandleJobGET(w http.ResponseWriter, r *http.Request) error {
@@ -50,11 +60,17 @@ func HandleJobGET(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
+	owner_id, err := getUserIdFromSession(r)
+	if err != nil {
+		core.Logger.Error("error fetching user id from session", "error", err)
+		return err
+	}
+
 	var response any
 
 	if request.ID != uuid.Nil {
 		job := &types.DatabaseJob{}
-		if tx := db.Preload("Staircases").First(&job, "id = ?", request.ID); tx.Error != nil {
+		if tx := db.Where("owner_id = ?", owner_id).Preload("Staircases").First(&job, "id = ?", request.ID); tx.Error != nil {
 			core.Logger.Error("error fetching job", "error", tx.Error)
 			return tx.Error
 		}
@@ -62,7 +78,7 @@ func HandleJobGET(w http.ResponseWriter, r *http.Request) error {
 		response = job
 	} else {
 		var jobs []types.DatabaseJob
-		if tx := db.Where(&request).Preload("Staircases").Find(&jobs); tx.Error != nil {
+		if tx := db.Where("owner_id = ?", owner_id).Where(&request).Preload("Staircases").Find(&jobs); tx.Error != nil {
 			core.Logger.Error("error fetching jobs", "error", tx.Error)
 			return tx.Error
 		}
@@ -71,34 +87,6 @@ func HandleJobGET(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return json.NewEncoder(w).Encode(response)
-}
-
-func HandleJobPATCH(w http.ResponseWriter, r *http.Request) error {
-	db := database.Database()
-	var request types.DatabaseJob
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		core.Logger.Error("error decoding request body", "error", err)
-		return err
-	} else if request.ID == uuid.Nil {
-		core.Logger.Error("id is required for delete")
-		return fmt.Errorf("id is required for delete")
-	}
-
-	db.Model(&types.DatabaseJob{}).
-		Where("id = ?", request.ID).
-		Select(
-			"IsInitialized", "IsInProgress", "IsFinished", "IsUploaded",
-			"DatabaseConnString", "DatabaseTableName", "DatabaseColumnName",
-		).
-		Updates(&request)
-
-	tx := db.Model(&types.DatabaseJob{}).Where("id = ?", request.ID).Updates(request)
-	if tx.Error != nil {
-		core.Logger.Error("error updating job", "error", tx.Error)
-		return tx.Error
-	}
-
-	return nil
 }
 
 func HandleJobDELETE(w http.ResponseWriter, r *http.Request) error {
@@ -112,13 +100,19 @@ func HandleJobDELETE(w http.ResponseWriter, r *http.Request) error {
 		return fmt.Errorf("id is required for delete")
 	}
 
-	tx := db.Delete(&types.DatabaseJob{}, "id = ?", request.ID)
+	owner, err := getUserIdFromSession(r)
+	if err != nil {
+		core.Logger.Error("error fetching user id from session", "error", err)
+		return err
+	}
+
+	tx := db.Delete(&types.DatabaseJob{}, "id = ?", request.ID, "owner_id = ?", owner)
 	if tx.Error != nil {
 		core.Logger.Error("error deleting job", "error", tx.Error)
 		return tx.Error
 	}
 
-	tx = db.Delete(&types.DatabaseStaircase{}, "job_id = ?", request.ID)
+	tx = db.Delete(&types.DatabaseStaircase{}, "job_id = ?", request.ID, "owner_id = ?", owner)
 	if tx.Error != nil {
 		core.Logger.Error("error deleting staircases", "error", tx.Error)
 		return tx.Error

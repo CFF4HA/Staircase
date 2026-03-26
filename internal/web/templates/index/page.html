@@ -2,11 +2,11 @@
 <div class="container-fluid">
   <!-- Testing Container -->
   <div class="row">
-    <div class="col" hx-get="/htmx/form/datasource" hx-trigger="load"></div>
-    <div class="d-flex flex-direction-column">
-      <div class="col" hx-get="/htmx/ds/list" hx-trigger="load, every 2s"></div>
-      <div class="col" hx-get="/htmx/job/list" hx-trigger="load, every 2s"></div>
+    <div class="col gap-2">
+      <div class="p-2" hx-get="/htmx/form/datasource" hx-trigger="load"></div>
+      <div class="p-2" hx-get="/htmx/form/job" hx-trigger="load"></div>
     </div>
+    <div class="col" hx-get="/htmx/ds/list" hx-trigger="load, every 2s"></div>
   </div>
 </div>
 

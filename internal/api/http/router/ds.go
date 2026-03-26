@@ -24,9 +24,22 @@ func HandleDatasourceDELETE(w http.ResponseWriter, r *http.Request) error {
 	}
 	db := database.Database()
 
-	tx := db.Model(&types.DatabaseDatasource{}).Where("id = ?", request.ID).Delete(&types.DatabaseDatasource{})
+	user, err := getUserIdFromSession(r)
+	if err != nil {
+		core.Logger.Error("error fetching user id from session", "error", err)
+		return err
+	}
+
+	tx := db.Model(&types.DatabaseDatasource{}).Where("owner_id = ?", user).Where("id = ?", request.ID).Delete(&types.DatabaseDatasource{})
 	if tx.Error != nil {
 		core.Logger.Error("error deleting datasource", "error", tx.Error)
+		return tx.Error
+	}
+
+	// we now delete the metadata that is tied to that
+	// data source as well.
+	if tx := db.Model(&types.DatabaseDatasourceMetadata{}).Where("datasource_id = ?", request.ID).Delete(&types.DatabaseDatasourceMetadata{}); tx.Error != nil {
+		core.Logger.Error("error deleting datasource metadata", "error", tx.Error)
 		return tx.Error
 	}
 
@@ -46,10 +59,16 @@ func HandleDatasourceGET(w http.ResponseWriter, r *http.Request) error {
 	}
 	db := database.Database()
 
+	user, err := getUserIdFromSession(r)
+	if err != nil {
+		core.Logger.Error("error fetching user id from session", "error", err)
+		return err
+	}
+
 	var response any
 	if request.ID != uuid.Nil {
 		ds := &types.DatabaseDatasource{}
-		if tx := db.First(&ds, "id = ?", request.ID); tx.Error != nil {
+		if tx := db.Where("owner_id = ?", user).First(&ds, "id = ?", request.ID); tx.Error != nil {
 			core.Logger.Error("error fetching datasource", "error", tx.Error)
 			return tx.Error
 		}
@@ -57,7 +76,7 @@ func HandleDatasourceGET(w http.ResponseWriter, r *http.Request) error {
 		response = ds
 	} else {
 		var dss []types.DatabaseDatasource
-		if tx := db.Where(&request).Find(&dss); tx.Error != nil {
+		if tx := db.Where("owner_id = ?", user).Where(&request).Find(&dss); tx.Error != nil {
 			core.Logger.Error("error fetching datasources", "error", tx.Error)
 			return tx.Error
 		}
@@ -75,20 +94,29 @@ func HandleDatasourcePUT(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	uuid := uuid.New()
+	user, err := getUserIdFromSession(r)
+	if err != nil {
+		core.Logger.Error("error fetching user id from session", "error", err)
+		return err
+	}
+
+	uid := uuid.New()
 
 	db := database.Database()
 	ds := &types.DatabaseDatasource{
-		ID:                 uuid,
+		ID:                 uid,
 		Name:               request.Name,
 		DatabaseConnString: request.DatabaseConnString,
 		DatabaseTableName:  request.DatabaseTableName,
 		DatabaseColumnName: request.DatabaseColumnName,
+		Metadata:           types.DatabaseDatasourceMetadata{ID: uuid.New(), DatasourceId: uid},
+		OwnerId:            user,
 	}
 
-	if tx := db.Model(&types.DatabaseDatasource{}).Create(ds); tx.Error != nil {
-		core.Logger.Error("error creating datasource", "error", tx.Error)
-		return tx.Error
+	ds_tx := db.Model(&types.DatabaseDatasource{}).Create(ds)
+	if ds_tx.Error != nil {
+		core.Logger.Error("error creating datasource", "error", ds_tx.Error)
+		return ds_tx.Error
 	}
 
 	return nil

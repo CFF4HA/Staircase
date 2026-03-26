@@ -2,17 +2,15 @@ package types
 
 import (
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type User struct {
-	gorm.Model
-
 	Uid          uuid.UUID `json:"uid" gorm:"type:uuid;primaryKey;not null"`
 	Username     string    `json:"username" gorm:"unique;not null"`
 	PasswordHash string    `json:"password_hash" gorm:"not null"`
 
-	ServiceTokens []ServiceToken `json:"service_tokens" gorm:"foreignKey:UserId;constraint:OnDelete:CASCADE;"`
+	Jobs        []DatabaseJob        `json:"jobs" gorm:"foreignKey:OwnerId;references:Uid;constraint:OnDelete:CASCADE;"`
+	Datasources []DatabaseDatasource `json:"datasources" gorm:"foreignKey:OwnerId;references:Uid;constraint:OnDelete:CASCADE;"`
 }
 
 type ServiceToken struct {

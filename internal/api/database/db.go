@@ -22,12 +22,13 @@ func InitDatabase(url string) {
 	// This here will initialize the types
 	// in the database via the AutoMigrate func.
 	db.AutoMigrate(
+		&types.User{},
 		&types.DatabaseDatasource{},
-		&types.DatabaseStaircase{},
+		&types.DatabaseDatasourceMetadata{},
+
 		&types.DatabaseJob{},
 		&types.DatabaseJobMetadata{},
-
-		&types.User{},
+		&types.DatabaseStaircase{},
 	)
 }
 

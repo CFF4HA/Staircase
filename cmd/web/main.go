@@ -64,6 +64,10 @@ func main() {
 		IncludeBaseTemplate: false,
 	})
 
+	app.RegisterTemplate("/htmx/form/job", "job/form/create.html", pff.TemplateRegistrationOpts{
+		IncludeBaseTemplate: false,
+	})
+
 	// HTMX Summary Components
 	ds_list := app.RegisterTemplate("/htmx/ds/list", "datasource/card-list.html", pff.TemplateRegistrationOpts{})
 	ds_list.RegisterBridge("Sources", bridges.BridgeCardList{})
