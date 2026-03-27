@@ -1,19 +1,31 @@
-events {}
+events {
+    worker_connections 1024;
+}
 
 http {
+    # The internal Docker/Railway DNS resolver
+    resolver 127.0.0.11 valid=30s;
+
     server {
-      listen 80;
+        listen 80;
 
-      location / {
-          proxy_pass ${FRONTEND_URL};
-      }
+        # Direct everything under /api/ to the backend
+        location ~ ^/api/(.*)$ {
+            # We use a variable to force Nginx to use the resolver
+            set $backend_endpoint "${BACKEND_URL}";
+            
+            proxy_pass $backend_endpoint/$1$is_args$args;
+            
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
 
-      location ~ ^/api/(.*)$ {
-        proxy_pass ${BACKEND_URL}/$1$is_args$args;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-      }
+        # Catch-all for everything else (or remove if only doing API)
+        location / {
+            set $frontend_endpoint "${FRONTEND_URL}";
+            proxy_pass $frontend_endpoint;
+        }
     }
 }
