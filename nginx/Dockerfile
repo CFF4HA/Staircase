@@ -1,7 +1,7 @@
 FROM nginx:alpine
 
 ARG FRONTEND_URL="http://staircase-webfrontend:8080"
-ARG BACKEND_URL="http://staircase-apibackedn:8081"
+ARG BACKEND_URL="http://staircase-apibackend:8081"
 
 COPY nginx.conf.template /etc/nginx/nginx.conf.template
 
