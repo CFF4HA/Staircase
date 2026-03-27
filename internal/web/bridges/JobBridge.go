@@ -62,7 +62,7 @@ func (b BridgeJobs) Data(w http.ResponseWriter, r *http.Request) (any, error) {
 	}
 	defer resp.Body.Close()
 
-	var job types.DatabaseJob
+	var job []types.DatabaseJob
 	if err := json.NewDecoder(resp.Body).Decode(&job); err != nil {
 		return nil, err
 	}

@@ -43,10 +43,6 @@ func (b BridgeDatasource) Data(w http.ResponseWriter, r *http.Request) (any, err
 		return nil, err
 	}
 
-	// might need to find a better spot for this
-	w.Header().Set("Hx-Retarget", "#modal-content-target")
-	w.Header().Set("Hx-Trigger", "showModal")
-
 	return source, nil
 }
 

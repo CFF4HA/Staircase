@@ -1,9 +1,9 @@
 {{ define "content" }}
 
-<div class="container-fluid">
+<div class="container">
   <!-- Testing Container -->
   <div class="row">
-    <div class="col p-5 text-center">
+    <div class="col">
       <h3>Staircase</h3>
       <p>Your tool for real-time direct web-analysis.</p>
       <ul clas="list-group">
@@ -19,11 +19,15 @@
         hx-swap="innerHTML"
       >Sign Up</button>
     </div> 
+  </div>
 
-    <div id="form-destination" class="col p-2"
-      hx-get="/htmx/form/login"
-      hx-trigger="load"
-    ></div>
+  <div class="row">
+    <div class="col justify-content-center">
+      <div id="form-destination" class="p-2 d-flex justify-content-center"
+        hx-get="/htmx/form/login"
+        hx-trigger="load"
+      ></div>
+    </div>
   </div>
 </div>
 

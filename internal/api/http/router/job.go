@@ -105,14 +105,15 @@ func HandleJobDELETE(w http.ResponseWriter, r *http.Request) error {
 		core.Logger.Error("error fetching user id from session", "error", err)
 		return err
 	}
+	_ = owner
 
-	tx := db.Delete(&types.DatabaseJob{}, "id = ?", request.ID, "owner_id = ?", owner)
+	tx := db.Delete(&types.DatabaseJob{}, "id = ?", request.ID)
 	if tx.Error != nil {
 		core.Logger.Error("error deleting job", "error", tx.Error)
 		return tx.Error
 	}
 
-	tx = db.Delete(&types.DatabaseStaircase{}, "job_id = ?", request.ID, "owner_id = ?", owner)
+	tx = db.Delete(&types.DatabaseStaircase{}, "job_id = ?", request.ID)
 	if tx.Error != nil {
 		core.Logger.Error("error deleting staircases", "error", tx.Error)
 		return tx.Error
