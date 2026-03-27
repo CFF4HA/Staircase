@@ -1,0 +1,50 @@
+{{ define "card-list_jobs" }}
+<div class="d-flex flex-wrap gap-3 mt-3">
+{{ range .Jobs }}
+  <div class="card p-2" style="cursor: pointer;"
+    hx-get="/htmx/job"
+    hx-include="[id='{{.ID}}']"
+    hx-target="#formContainer"
+    hx-trigger="click"
+    hx-on::after-request="new bootstrap.Offcanvas('#formDrawer').show()"
+  >
+    <input type="hidden" id="{{ .ID }}" name="id" value="{{ .ID }}">
+
+    <h5 class="card-title">{{ .Name }}</h5>
+    <p class="" style="color=gray;">{{ .ID }}</p>
+
+    {{/* 
+      we are going to now, based on the metadata options, display if a job 
+      is initialized, in progress, finished, and or uploaded.
+    */}}
+    {{ $status_color := "secondary" }}
+    {{ $status := "Not Initialized" }}
+    {{ if .Metadata.IsInitialized }}
+        {{ $status = "Initialized" }}
+    {{ end }}
+    {{ if .Metadata.IsInProgress }}
+        {{ $status = "In Progress" }}
+        {{ $status_color = "primary"}}
+    {{ end }}
+    {{ if .Metadata.IsFinished }}
+        {{ $status = "Finished" }}
+        {{ $status_color = "success"}}
+    {{ end }}
+    {{ if .Metadata.IsUploaded }}
+        {{ $status = "Uploaded" }}
+        {{ $status_color = "dark" }}
+    {{ end }}
+    <span class="badge bg-{{ $status_color }}">
+      {{ $status }}
+    </span>
+    
+  </div>
+{{ end }}
+</div>
+
+<script>
+</script>
+{{ end }}
+
+{{ template "card-list_jobs" . }}
+

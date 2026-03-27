@@ -1,0 +1,29 @@
+{{ define "card-list" }}
+<div class="d-flex flex-wrap gap-3 mt-3">
+{{ range .Sources }}
+  <div class="card p-2" style="cursor: pointer;"
+    hx-get="/htmx/ds"
+    hx-include="[id='{{.ID}}']"
+    hx-target="#formContainer"
+    hx-trigger="click"
+    hx-on::after-request="new bootstrap.Offcanvas('#formDrawer').show()"
+  >
+    <input type="hidden" id="{{ .ID }}" name="id" value="{{ .ID }}">
+
+    <h5 class="card-title">{{ .Name }}</h5>
+    <p class="" style="color=gray;">{{ .ID }}</p>
+    
+    <!-- connection indicators based on status -->
+    <span class="badge bg-{{ if .Metadata.IsAlive }}dark{{ else }}secondary{{ end }}">
+      {{ if .Metadata.IsAlive }}Connected{{ else }}Disconnected{{ end }}
+    </span>
+  </div>
+{{ end }}
+</div>
+
+<script>
+</script>
+{{ end }}
+
+{{ template "card-list" . }}
+

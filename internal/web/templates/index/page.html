@@ -1,8 +1,105 @@
 {{ define "content" }}
-<div class="container-fluid">
+<div class="container-fluid gap-1 m-2">
   <!-- Testing Container -->
   <div class="row">
-    <div class="col" hx-get="/htmx/form/datasource" hx-trigger="load"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar bg-body-tertiary">
+      <div class="container-fluid justify-content-between">
+        <span class="navbar-brand mb-0 h1"><i class="bi bi-bar-chart-steps"></i> Staircase</span>
+        <div class="btn-group">
+          <button class="btn btn-dark">Documentation</button>
+          <button class="btn btn-dark">Source Code</button>
+        </div>
+      </div>
+    </nav>
+
+  </div>
+
+  <div class="row mt-5">
+    <div class="col">
+      <h1 class="display-5">Welcome to Staircase</h1>
+      <p class="lead">Staircase is a tool for building and managing data pipelines.</p>
+      <hr class="my-4">
+      <p>Get started by creating a new pipeline or exploring the documentation.</p>
+      <button class="btn btn-dark btn-md" href="#" role="button"
+        hx-get="/htmx/form/datasource"
+        hx-target="#formContainer"
+        hx-trigger="click"
+        hx-on::after-request="new bootstrap.Offcanvas('#formDrawer').show()"
+      >Create Datasource</button>
+      <button class="btn btn-dark btn-md" href="#" role="button"
+        hx-get="/htmx/form/job"
+        hx-target="#formContainer"
+        hx-trigger="click"
+        hx-on::after-request="new bootstrap.Offcanvas('#formDrawer').show()"
+      >Create Job</button>
+    </div>
+  </div>
+
+  <div class="row mt-5">
+    <div class="col">
+      <h2>Datasources</h2>
+      <p class="subtitle">
+        A datasource represents a connection to an external postgres database. It contains the necessary information to connect and interact with the database, such as host, port, username, and password. You can create, and delete datasources as needed to manage your data connections effectively.
+      </p>
+
+      <div class="input-group mb-3">
+        <i class="bi bi-search input-group-text bg-dark text-light"></i>
+        <input type="text" class="form-control" name="input-datasource_filter" placeholder="Search datasources...">
+      </div>
+
+      <div class="d-flex flex-direction-row gap-2 flex-wrap"
+        hx-get="/htmx/ds/list"
+        hx-trigger="load, every 10s"
+      >
+      </div>
+
+    </div>
+  </div>
+
+  <div class="row mt-5">
+    <div class="col">
+
+      <h2>Jobs</h2>
+      <p class="subtitle">
+        A job is the core of the Staircase system. At it's core it contains the Staircase declaration, a custom
+        domain specific language (DSL), which it uses to navigate a website's DOM and extract data.
+      </p>
+
+      <div class="input-group mb-3">
+        <i class="bi bi-search input-group-text bg-dark text-light"></i>
+        <input type="text" class="form-control" name="input-job_filter" placeholder="Search jobs...">
+      </div>
+
+      <div class="d-flex flex-direction-row gap-2 flex-wrap"
+        hx-get="/htmx/job/list"
+        hx-trigger="load, every 10s"
+      >
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Container End -->
+</div>
+
+<div class="modal fade" id="modal-container" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div id="modal-content-target" class="modal-content">
+      </div>
+  </div>
+</div>
+
+<script>
+document.body.addEventListener("showModal", function() {
+    const modal = new bootstrap.Modal(document.getElementById('modal-container'));
+    modal.show();
+});
+</script>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="formDrawer" aria-labelledby="formDrawerLabel">
+  <div id="formContainer" class="offcanvas-body">
   </div>
 </div>
 {{ end }}

@@ -1,0 +1,59 @@
+{{ define "datasource" }}
+<div class="modal-header">
+  <h5 class="modal-title text-secondary">{{ .Source.Name }}</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+  <h5>Datasource Information!</h5>
+  <p class="text-muted">
+    The following is all the information we have on your data source!
+  </p>
+
+  <ul class="list-group mt-2">
+    <li class="list-group-item"><p>Connection String: </p><code>{{.Source.DatabaseConnString}}</code></li>
+    <li class="list-group-item"><p>Table</p><code>{{.Source.DatabaseTableName}}</code></li>
+    <li class="list-group-item"><p>Column</p><code>{{.Source.DatabaseColumnName}}</code></li>
+  </ul>
+</div>
+
+<input type="hidden" id="ds-id" value="{{.Source.ID}}">
+<div class="modal-footer mt-2">
+  <button type="button ms-1" class="btn btn-danger" onclick="DatasourceDelete()">Delete</button>
+</div>
+
+
+<script>
+  function GetDatasourceInfo() {
+    var ds = {
+      id: document.getElementById("ds-id").value,
+    }
+
+    return ds;
+  }
+
+  async function DatasourceDelete() {
+    var ds = GetDatasourceInfo();
+
+    const response = await fetch("/api/ds", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(ds),
+    });
+
+    if (response.ok) {
+      // Close the modal
+      var modalElement = document.getElementById('modal-container');
+      var modal = bootstrap.Modal.getInstance(modalElement);
+      modal.hide();
+
+      // Optionally, you can also refresh the datasource list or perform other actions here
+    } else {
+      console.error("Failed to delete datasource");
+    }
+  }
+
+</script>
+{{ end }}
+{{ template "datasource" .}}

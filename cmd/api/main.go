@@ -49,11 +49,6 @@ func main() {
 		Method:   http.MethodDelete,
 		Handler:  routes.HandleJobDELETE,
 	})
-	router.Add(pbf.RouteOptions{
-		Endpoint: "/job",
-		Method:   http.MethodPatch,
-		Handler:  routes.HandleJobPATCH,
-	})
 
 	// User related routes
 	router.Add(pbf.RouteOptions{
@@ -68,12 +63,32 @@ func main() {
 		Handler:  routes.HandleUserPOST,
 	})
 
+	router.Add(pbf.RouteOptions{
+		Endpoint: "/user/session",
+		Method:   http.MethodPost,
+		Handler:  routes.HandleSessionPOST,
+	})
+
 	// Datasource related routes
 	router.Add(pbf.RouteOptions{
 		Endpoint: "/ds",
 		Method:   http.MethodPut,
 		Handler:  routes.HandleDatasourcePUT,
 	})
+
+	router.Add(pbf.RouteOptions{
+		Endpoint: "/ds",
+		Method:   http.MethodGet,
+		Handler:  routes.HandleDatasourceGET,
+	})
+
+	router.Add(pbf.RouteOptions{
+		Endpoint: "/ds",
+		Method:   http.MethodDelete,
+		Handler:  routes.HandleDatasourceDELETE,
+	})
+
+	// Job related routes
 
 	if err := router.Start(); err != nil {
 		panic(err)
