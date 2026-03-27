@@ -6,8 +6,8 @@ go 1.26.1
 // replace github.com/DAlba-sudo/pff => /Users/dalba/Projects/.all/pff
 
 require (
-	github.com/DAlba-sudo/pbf v0.0.0-20260327212912-3b2f08734744
-	github.com/DAlba-sudo/pff v1.0.0
+	github.com/DAlba-sudo/pbf v1.0.0
+	github.com/DAlba-sudo/pff v1.0.1
 	github.com/antlr4-go/antlr/v4 v4.13.1
 	github.com/google/uuid v1.6.0
 	golang.org/x/crypto v0.31.0
