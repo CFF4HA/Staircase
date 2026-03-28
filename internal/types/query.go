@@ -25,8 +25,14 @@ type RetrievalQuery struct {
 
 	// The following is meta-information required
 	// for tracking the query via the database.
-	Id                 uuid.UUID `json:"id"`
-	DatabaseConnString string    `json:"database_conn_string"`
-	DatabaseTableName  string    `json:"database_table_name"`
-	DatabaseColumnName string    `json:"database_column_name"`
+	Id uuid.UUID `json:"id"`
+}
+
+// This is the overall structure that we will
+// pass and it will contain all query objects, etc.
+type RetrievalJob struct {
+	Queries []RetrievalQuery `json:"queries"`
+
+	Datasource *DatabaseDatasource `json:"datasource"`
+	Id         uuid.UUID           `json:"id"`
 }
