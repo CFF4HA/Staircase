@@ -97,6 +97,7 @@ func (w *WorkerPool) spawn(ctx context.Context) {
 				job.JobMetadata.InjectedJavascript = strings.Join(injections, "\n")
 				job.JobMetadata.Result = results[len(results)-1].Result
 				db.Save(&job.JobMetadata)
+				core.Logger.Info("successfully completed job", "job_id", job.Id)
 			}
 
 		case <-ctx.Done():

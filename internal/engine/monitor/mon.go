@@ -64,7 +64,6 @@ func (m *Monitor) worker() {
 				// them into a format that is more convenient for the engine.
 				var retrieval types.RetrievalJob
 				retrieval.Id = job.ID
-				retrieval.JobMetadata = job.Metadata
 
 				for _, staircase := range job.Staircases {
 					q := parser.Process(staircase.Declaration)
@@ -79,6 +78,7 @@ func (m *Monitor) worker() {
 				job.Metadata.LastScan = time.Now()
 				db.Save(&job.Metadata)
 
+				retrieval.JobMetadata = job.Metadata
 				m.Job <- retrieval
 			}
 		case <-m.c.Done():
