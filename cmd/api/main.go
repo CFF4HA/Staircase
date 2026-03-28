@@ -51,11 +51,11 @@ func main() {
 	})
 
 	// User related routes
-	router.Add(pbf.RouteOptions{
-		Endpoint: "/user",
-		Method:   http.MethodPut,
-		Handler:  routes.HandleUserPUT,
-	})
+	// router.Add(pbf.RouteOptions{
+	// 	Endpoint: "/user",
+	// 	Method:   http.MethodPut,
+	// 	Handler:  routes.HandleUserPUT,
+	// })
 
 	router.Add(pbf.RouteOptions{
 		Endpoint: "/user",
