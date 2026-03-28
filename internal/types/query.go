@@ -33,6 +33,14 @@ type RetrievalQuery struct {
 type RetrievalJob struct {
 	Queries []RetrievalQuery `json:"queries"`
 
-	Datasource *DatabaseDatasource `json:"datasource"`
-	Id         uuid.UUID           `json:"id"`
+	JobMetadata DatabaseJobMetadata `json:"metadata"`
+	Datasource  DatabaseDatasource  `json:"datasource"`
+	Id          uuid.UUID           `json:"id"`
+}
+
+// This adds a structure specific to the regex engine which allows
+// us to surface logs, etc from the chromedp execution context.
+type StaircaseEngineLog struct {
+	Result string
+	Logs   []string
 }

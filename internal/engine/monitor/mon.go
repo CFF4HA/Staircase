@@ -52,8 +52,6 @@ func (m *Monitor) worker() {
 				break
 			}
 
-			core.Logger.Debug("Found new jobs", "count", len(job_ids))
-
 			var jobs []types.DatabaseJob
 			tx := db.Model(&types.DatabaseJob{}).Where("id IN ?", job_ids).Preload("Metadata").Preload("Staircases").Find(&jobs)
 			if tx.Error != nil {
@@ -66,6 +64,7 @@ func (m *Monitor) worker() {
 				// them into a format that is more convenient for the engine.
 				var retrieval types.RetrievalJob
 				retrieval.Id = job.ID
+				retrieval.JobMetadata = job.Metadata
 
 				for _, staircase := range job.Staircases {
 					q := parser.Process(staircase.Declaration)
@@ -74,11 +73,12 @@ func (m *Monitor) worker() {
 					retrieval.Queries = append(retrieval.Queries, *q)
 				}
 
+				// TODO: Is this the best way to go about running updates?
+				// Not sure.
 				job.Metadata.IsInitialized = true
 				job.Metadata.LastScan = time.Now()
 				db.Save(&job.Metadata)
 
-				core.Logger.Debug("Dispatched new job", "job", retrieval)
 				m.Job <- retrieval
 			}
 		case <-m.c.Done():

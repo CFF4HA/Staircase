@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 
+	"github.com/CFF4HA/Staircase/internal/engine/chrome"
 	"github.com/CFF4HA/Staircase/internal/engine/core"
 	"github.com/CFF4HA/Staircase/internal/engine/database"
 	"github.com/CFF4HA/Staircase/internal/engine/monitor"
@@ -25,6 +26,12 @@ func main() {
 
 	// setup the engine
 	m := monitor.Create()
-	m.Start(ctx, 1)
+	jobs := m.Start(ctx, 1)
+
+	// setup the worker pools
+	wp := chrome.NewWorkerPool(jobs)
+	wp.Start(ctx, 4)
+
 	m.Wait()
+	wp.Wait()
 }
