@@ -1,6 +1,6 @@
 FROM nginx:alpine
 
-# Copy directly to the main config location
-COPY nginx.conf /etc/nginx/nginx.conf
+# The official image automatically runs envsubst on files in this folder
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 EXPOSE 80
