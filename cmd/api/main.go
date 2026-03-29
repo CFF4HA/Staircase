@@ -40,6 +40,18 @@ func main() {
 
 	router.Add(pbf.RouteOptions{
 		Endpoint: "/job",
+		Method:   http.MethodPatch,
+		Handler:  routes.HandleJobPATCH,
+	})
+
+	router.Add(pbf.RouteOptions{
+		Endpoint: "/job/redo",
+		Method:   http.MethodPost,
+		Handler:  routes.HandleJobRedo,
+	})
+
+	router.Add(pbf.RouteOptions{
+		Endpoint: "/job",
 		Method:   http.MethodGet,
 		Handler:  routes.HandleJobGET,
 	})

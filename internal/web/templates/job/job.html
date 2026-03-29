@@ -5,27 +5,61 @@
 </div>
 <div class="modal-body bg-white text-dark">
   <div class="mb-4">
-    <h4 class="fw-bold mb-1">{{ .Job.Name }}</h4>
+  <h4 class="fw-bold mb-1">{{ .Job.Name }}      <button onclick='Redo("{{ .Job.ID }}")' class="btn btn-sm btn-dark"><i class="bi bi-arrow-clockwise text-light"></i></button></h4>
     <p class="text-muted small">Job ID: {{ .Job.ID }} </p>
   </div>
 
 {{ if .Job.Metadata.ID }}
   <div class="mb-4">
+    <div class="mb-4">
     <h6 class="text-uppercase fw-bold small text-secondary border-bottom pb-2">Status & Details</h6>
-    <div class="d-flex flex-wrap gap-2 my-3">
-      <span class="badge border text-dark fw-normal {{ if .Job.Metadata.IsInitialized }}bg-light{{ else }}text-muted{{ end }}">Initialized</span>
-      <span class="badge border text-dark fw-normal {{ if .Job.Metadata.IsInProgress }}bg-light{{ else }}text-muted{{ end }}">In Progress</span>
-      <span class="badge border text-dark fw-normal {{ if .Job.Metadata.IsFinished }}bg-light{{ else }}text-muted{{ end }}">Finished</span>
-      <span class="badge border text-dark fw-normal {{ if .Job.Metadata.IsUploaded }}bg-light{{ else }}text-muted{{ end }}">Uploaded</span>
+  
+
+    <div class="mb-4">
+      <div class="d-flex justify-content-between align-items-end mb-2">
+        <h6 class="text-uppercase fw-bold small text-secondary mb-0">Scan Lifecycle</h6>
+        <span class="small text-muted">Frequency: <span class="badge border fw-normal text-light bg-dark">{{ .Job.Frequency }} hour</span></span>
+      </div>
+
+      {{ if not .Job.Metadata.LastScan.IsZero }}
+      <div id="job-progress-container"
+        data-last-scan="{{ .Job.Metadata.LastScan.Format "2006-01-02T15:04:05Z07:00"}}"
+        data-frequency="{{ .Job.Frequency }}">
+
+        <div class="progress bg-light border" style="height: 12px; overflow: visible;">
+          <div id="job-progress-bar" class="progress-bar bg-dark rounded-1" 
+              role="progressbar" 
+              style="width: 0; transition: width 0.5s ease;" 
+              aria-valuemax="100">
+          </div>
+        </div>
+        <div class="d-flex justify-content-between mt-2">
+          <small class="text-muted">Last Scan: {{ .Job.Metadata.LastScan.Format "15:04:05" }}</small>
+        </div>
+
+      {{ else }}
+        <div class="progress bg-light border" style="height: 12px;">
+          <div class="progress-bar progress-bar-striped progress-bar-animated bg-secondary opacity-25" 
+              role="progressbar" 
+              style="width: 100%">
+          </div>
+        </div>
+        <div class="d-flex justify-content-between mt-2">
+          <span class="badge bg-dark-subtle text-dark border fw-normal">Pending First Run</span>
+        </div>
+      {{ end }}
     </div>
 
-    {{ if not .Job.Metadata.LastScan.IsZero }}
-      <p class="small text-muted mb-3">Last scanned: {{ .Job.Metadata.LastScan.Format "Jan 02, 2006 15:04" }}</p>
-    {{ end }}
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      <span class="badge border text-dark fw-normal {{ if .Job.Metadata.IsInitialized }}bg-light{{ else }}text-muted opacity-50{{ end }}">Initialized</span>
+      <span class="badge border text-dark fw-normal {{ if .Job.Metadata.IsInProgress }}bg-light{{ else }}text-muted opacity-50{{ end }}">In Progress</span>
+      <span class="badge border text-dark fw-normal {{ if .Job.Metadata.IsFinished }}bg-light{{ else }}text-muted opacity-50{{ end }}">Finished</span>
+      <span class="badge border text-dark fw-normal {{ if .Job.Metadata.IsUploaded }}bg-light{{ else }}text-muted opacity-50{{ end }}">Uploaded</span>
+    </div>
 
     {{ if .Job.Metadata.Error }}
-      <div class="p-3 mb-3 bg-light border-start border-dark">
-        <p class="small mb-0 text-dark"><strong>Error:</strong> {{ .Job.Metadata.Error }}</p>
+      <div class="p-3 mb-3 bg-danger-subtle border-start border-danger">
+        <p class="small mb-0 text-danger"><strong>Error:</strong> {{ .Job.Metadata.Error }}</p>
       </div>
     {{ end }}
 
@@ -133,6 +167,71 @@
       console.error("Failed to delete datasource");
     }
   }
+
+  function updateJobProgress() {
+    const container = document.getElementById('job-progress-container');
+    const progressBar = document.getElementById('job-progress-bar');
+    
+    if (!container || !progressBar) return;
+
+    // 1. Parse Data
+    const lastScanStr = container.getAttribute('data-last-scan');
+    const frequencyStr = container.getAttribute('data-frequency');
+    
+    if (!lastScanStr || lastScanStr.startsWith('0001')) return; // Handle null/zero time
+
+    const lastScan = new Date(lastScanStr);
+    const now = new Date();
+    
+    // 3. Calculate
+    const elapsedMs = now - lastScan;
+    let percent = (elapsedMs / (parseInt(frequencyStr) * 3600000)) * 100;
+    
+    // Cap at 100% and handle styling
+    percent = Math.min(Math.max(percent, 0), 100);
+    
+    // 4. Update UI
+    progressBar.style.width = percent + '%';
+    
+    if (percent > 90) {
+        progressBar.classList.replace('bg-primary', 'bg-warning');
+    }
+}
+
+// Helper to parse strings like "1h30m", "5m", "45s"
+function parseGoDuration(duration) {
+    const regex = /((?<hours>\d+)h)?((?<minutes>\d+)m)?((?<seconds>\d+)s)?/;
+    const matches = duration.match(regex).groups;
+    
+    const h = parseInt(matches.hours || 0) * 3600000;
+    const m = parseInt(matches.minutes || 0) * 60000;
+    const s = parseInt(matches.seconds || 0) * 1000;
+    
+    return h + m + s || 60000; // Default to 1m if parsing fails
+}
+
+  async function Redo(identifier) {
+    fetch("/api/job/redo", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: identifier }),
+    }).then(response => {
+      if (response.ok) {
+        // Optionally, you can refresh the job details here
+      } else {
+        console.error("Failed to redo job");
+      }
+    }).catch(err => {
+      console.error("Error redoing job: ", err);
+    });
+  }
+
+// Run every second
+setInterval(updateJobProgress, 1000);
+// Run immediately on load
+updateJobProgress();
 
 </script>
 {{ end }}
