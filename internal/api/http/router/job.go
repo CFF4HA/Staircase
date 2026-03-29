@@ -95,8 +95,72 @@ func HandleJobPUT(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
+func HandleJobPATCH(w http.ResponseWriter, r *http.Request) error {
+	db := database.Database()
+
+	var request types.DatabaseJob
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		return err
+	}
+
+	// the owner based on the session
+	owner, err := getUserIdFromSession(r)
+	if err != nil {
+		return err
+	}
+
+	// the job must have an ID, and it must be owned by the owner
+	var job types.DatabaseJob
+	tx := db.Model(&types.DatabaseJob{}).
+		Where("id = ?", request.ID).
+		Where("owner_id = ?", owner).
+		Preload("Metadata").
+		Preload("Staircases").
+		First(&job)
+
+	if tx.Error != nil {
+		return err
+	}
+
+	// we now will do the "diffing" and determine what needs to be updated
+	if request.Name != job.Name {
+		job.Name = request.Name
+		if tx := db.Save(&job); tx.Error != nil {
+			return err
+		}
+	}
+
+	if request.Frequency != job.Frequency {
+		job.Frequency = request.Frequency
+		if tx := db.Save(&job); tx.Error != nil {
+			return err
+		}
+
+	}
+
+	if request.DatasourceId != job.DatasourceId {
+		job.DatasourceId = request.DatasourceId
+		if tx := db.Save(&job); tx.Error != nil {
+			return err
+		}
+	}
+
+	// now we will diff the staricase attributes
+	for i, staircase := range request.Staircases {
+		if job.Staircases[i].Declaration != staircase.Declaration {
+			job.Staircases[i].Declaration = request.Staircases[i].Declaration
+			if tx := db.Save(&job); tx.Error != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func HandleJobGET(w http.ResponseWriter, r *http.Request) error {
 	db := database.Database()
+
 	var request types.DatabaseJob
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		if err != io.EOF {
