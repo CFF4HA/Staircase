@@ -16,6 +16,7 @@ type DatabaseJob struct {
 	ID uuid.UUID `json:"id" gorm:"type:uuid;primaryKey;not null;default:gen_random_uuid()"`
 
 	Name         string              `json:"name"`
+	Frequency    int                 `json:"frequency" gorm:"not null;default:60;"`
 	Staircases   []DatabaseStaircase `json:"staircases" gorm:"foreignKey:JobId;constraint:OnDelete:CASCADE;"`
 	Metadata     DatabaseJobMetadata `json:"metadata" gorm:"foreignKey:JobId;constraint:OnDelete:CASCADE;"`
 	DatasourceId uuid.UUID           `json:"datasource_id" gorm:"type:uuid;not null;"`

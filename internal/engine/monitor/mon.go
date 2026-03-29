@@ -32,13 +32,60 @@ func (m *Monitor) Wait() {
 	m.wg.Wait()
 }
 
+// This function will enqueue the jobs that are new in the database
+// as determined by the `is_initialzied` field.
+func qNewJobs() []types.DatabaseJob {
+	var jobs []types.DatabaseJob
+	var job_ids []uuid.UUID
+	db := database.Database()
+	if tx := db.Model(&types.DatabaseJobMetadata{}).Where("is_initialized = ?", false).Pluck("job_id", &job_ids); tx.Error != nil {
+		core.Logger.Error("Failed to query database for new jobs", "error", tx.Error)
+		return nil
+	}
+
+	tx := db.Model(&types.DatabaseJob{}).Where("id IN ?", job_ids).Preload("Metadata").Preload("Staircases").Find(&jobs)
+	if tx.Error != nil {
+		core.Logger.Error("Failed to query database for new jobs", "error", tx.Error)
+		return nil
+	}
+	return jobs
+}
+
+// This fuction will enqueue the jobs that are finished in the
+// database and have a last scan time which has become stale.
+func qRefreshableJobs() []types.DatabaseJob {
+	var allJobs []types.DatabaseJob
+	var job_ids []uuid.UUID
+	db := database.Database()
+	if tx := db.Model(&types.DatabaseJobMetadata{}).Where("is_finished = ?", true).Pluck("job_id", &job_ids); tx.Error != nil {
+		core.Logger.Error("Failed to query database for finished jobs", "error", tx.Error)
+		return nil
+	}
+
+	tx := db.Model(&types.DatabaseJob{}).Where("id IN ?", job_ids).Preload("Metadata").Preload("Staircases").Find(&allJobs)
+	if tx.Error != nil {
+		core.Logger.Error("Failed to query database for finished jobs", "error", tx.Error)
+		return nil
+	}
+
+	var jobs []types.DatabaseJob
+	for _, job := range allJobs {
+		scanDeadline := job.Metadata.LastScan.Add(time.Duration(job.Frequency) * time.Hour)
+		if scanDeadline.Before(time.Now()) {
+			core.Logger.Debug("Job is refreshable, adding to queue", "job_id", job.ID, "scanDeadline", scanDeadline, "now", time.Now())
+			jobs = append(jobs, job)
+		}
+	}
+
+	return jobs
+}
+
 func (m *Monitor) worker() {
 	defer m.wg.Done()
 
 	ticker := time.NewTicker(time.Duration(core.Config.DatabasePollInterval) * time.Second)
 	defer ticker.Stop()
 
-	db := database.Database()
 	parser := NewStaircaseProcessor()
 
 	// this function will iterate through the database and
@@ -46,17 +93,9 @@ func (m *Monitor) worker() {
 	for {
 		select {
 		case <-ticker.C:
-			var job_ids []uuid.UUID
-			if tx := db.Model(&types.DatabaseJobMetadata{}).Where("is_initialized = ?", false).Pluck("job_id", &job_ids); tx.Error != nil {
-				core.Logger.Error("Failed to query database for new jobs", "error", tx.Error)
-				break
-			}
-
 			var jobs []types.DatabaseJob
-			tx := db.Model(&types.DatabaseJob{}).Where("id IN ?", job_ids).Preload("Metadata").Preload("Staircases").Find(&jobs)
-			if tx.Error != nil {
-				core.Logger.Error("Failed to query database for new jobs", "error", tx.Error)
-			}
+			jobs = append(jobs, qNewJobs()...)
+			jobs = append(jobs, qRefreshableJobs()...)
 
 			for _, job := range jobs {
 				// here we want to use the parser to completely parse the
@@ -72,11 +111,11 @@ func (m *Monitor) worker() {
 					retrieval.Queries = append(retrieval.Queries, *q)
 				}
 
-				// TODO: Is this the best way to go about running updates?
-				// Not sure.
-				job.Metadata.IsInitialized = true
-				job.Metadata.LastScan = time.Now()
-				db.Save(&job.Metadata)
+				{
+					db := database.Database()
+					job.Metadata.IsInitialized = true
+					db.Save(&job.Metadata)
+				}
 
 				retrieval.JobMetadata = job.Metadata
 				m.Job <- retrieval

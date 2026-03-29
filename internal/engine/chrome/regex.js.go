@@ -120,7 +120,7 @@ class Anchor {
 };
 
 function getElementsByRegex(regex) {
-  const elements = Array.from(document.querySelectorAll('*')).filter(el => regex.test(el.textContent));
+  const elements = Array.from(document.querySelectorAll('*')).filter(el => regex.test(el.textContent.trim()));
   return elements;
 };
 
@@ -133,7 +133,7 @@ function getAnchor(regex) {
 		count += 1;
 	}
 
-  return new Anchor(elements[elements.length - 1]);
+  return new Anchor(elements[0]);
 }
 	`
 )

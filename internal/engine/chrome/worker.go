@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/CFF4HA/Staircase/internal/engine/core"
 	"github.com/CFF4HA/Staircase/internal/engine/database"
@@ -93,6 +94,7 @@ func (w *WorkerPool) spawn(ctx context.Context) {
 			// and we have a screenshot, so there is nothing else to do.
 			{
 				job.JobMetadata.IsFinished = true
+				job.JobMetadata.LastScan = time.Now()
 				job.JobMetadata.Image = base64.StdEncoding.EncodeToString(screenshot)
 				job.JobMetadata.InjectedJavascript = strings.Join(injections, "\n")
 				job.JobMetadata.Result = results[len(results)-1].Result

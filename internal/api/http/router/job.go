@@ -12,6 +12,51 @@ import (
 	"github.com/CFF4HA/Staircase/internal/types"
 )
 
+func HandleJobRedo(w http.ResponseWriter, r *http.Request) error {
+	db := database.Database()
+
+	// has the ID already pre-filled in the request body
+	var request types.DatabaseJob
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		return err
+	}
+
+	owner_id, err := getUserIdFromSession(r)
+	if err != nil {
+		core.Logger.Error("error fetching user id from session", "error", err)
+		return err
+	}
+
+	tx := db.Model(&types.DatabaseJob{}).Where("id = ?", request.ID).Where("owner_id = ?", owner_id).Preload("Metadata").First(&request)
+	if tx.Error != nil {
+		core.Logger.Error("error fetching job for redo", "error", tx.Error)
+		return err
+	}
+
+	request.Metadata = types.DatabaseJobMetadata{
+		ID:                 request.Metadata.ID,
+		JobId:              request.ID,
+		IsInitialized:      false,
+		IsInProgress:       false,
+		IsFinished:         false,
+		IsUploaded:         false,
+		LastScan:           request.Metadata.LastScan,
+		InjectedJavascript: "",
+		Result:             "",
+		Image:              "",
+		Error:              "",
+	}
+
+	tx = db.Save(&request.Metadata)
+	if tx.Error != nil {
+		core.Logger.Error("error resetting job metadata for redo", "error", tx.Error)
+		return err
+	}
+
+	core.Logger.Debug("job reset for redo", "job_id", request.ID, "owner_id", owner_id)
+	return nil
+}
+
 func HandleJobPUT(w http.ResponseWriter, r *http.Request) error {
 	db := database.Database()
 
