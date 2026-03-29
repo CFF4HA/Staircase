@@ -74,7 +74,7 @@
 
       <div class="d-flex flex-direction-row gap-2 flex-wrap"
         hx-get="/htmx/job/list"
-        hx-trigger="load, every 1s"
+        hx-trigger="load, every 10s"
       >
       </div>
 
@@ -98,7 +98,7 @@ document.body.addEventListener("showModal", function() {
 });
 </script>
 
-<div class="offcanvas offcanvas-start w-75" tabindex="-1" id="formDrawer" aria-labelledby="formDrawerLabel">
+<div class="offcanvas offcanvas-start" tabindex="-1" id="formDrawer" aria-labelledby="formDrawerLabel">
   <div id="formContainer" class="offcanvas-body">
   </div>
 </div>

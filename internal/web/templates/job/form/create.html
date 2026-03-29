@@ -1,5 +1,5 @@
 {{ define "form-job_create" }}
-<div class="card" style="" 
+<div class="card" style="max-width: 26rem;"
   hx-get="/htmx/form/success"
   hx-trigger="job-create-success from:body"
   hx-target="#notification"
@@ -26,18 +26,6 @@
         This is the name of your job. It should be unique and descriptive.
       </p>
       <input type="text" class="form-control" id="form-job_name" name="form-job_name" placeholder="Enter job name">
-    </div>
-
-    <div class="mb-3">
-      <label for="form-job_frequency" class="form-label">Frequency</label>
-      <p class="text-muted">
-        This is how often you'd like your job to run. The unit is in hours. 
-      </p>
-      <div class="input-group">
-        <span class="input-group-text" id="basic-addon1">Every</span>
-        <input type="number" class="form-control" id="form-job_frequency" name="form-job_frequency" placeholder="24">
-        <span class="input-group-text" id="basic-addon2">hours</span>
-      </div>
     </div>
 
     <div class="mb-3">
@@ -82,7 +70,6 @@
   function GetJobData() {
     var job = {
       name: document.getElementById("form-job_name").value,
-      frequency: parseInt(document.getElementById("form-job_frequency").value),
       staircases: [],
       datasource_id: document.getElementById("form-job_datasource").value
     };
