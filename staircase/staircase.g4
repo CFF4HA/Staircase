@@ -45,7 +45,7 @@ LBRACK: '[';
 RBRACK: ']';
 AT: '@';
 
-URL: 'http' 's'? '://' [-a-zA-Z0-9./?=_#]+;
+URL: 'http' 's'? '://' [-a-zA-Z0-9./?=_#:&]+;
 
 // Supports escaped quotes inside the string
 STRING: '"' ( '\\"' | ~('"'|'\\') )* '"';

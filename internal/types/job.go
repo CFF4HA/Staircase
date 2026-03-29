@@ -16,6 +16,7 @@ type DatabaseJob struct {
 	ID uuid.UUID `json:"id" gorm:"type:uuid;primaryKey;not null;default:gen_random_uuid()"`
 
 	Name         string              `json:"name"`
+	Frequency    int                 `json:"frequency" gorm:"not null;default:60;"`
 	Staircases   []DatabaseStaircase `json:"staircases" gorm:"foreignKey:JobId;constraint:OnDelete:CASCADE;"`
 	Metadata     DatabaseJobMetadata `json:"metadata" gorm:"foreignKey:JobId;constraint:OnDelete:CASCADE;"`
 	DatasourceId uuid.UUID           `json:"datasource_id" gorm:"type:uuid;not null;"`
@@ -41,7 +42,12 @@ type DatabaseJobMetadata struct {
 	IsUploaded    bool      `json:"is_uploaded" gorm:"default:false"`
 	LastScan      time.Time `json:"last_scan" gorm:"default:null"`
 
-	Error string `json:"error"`
+	// the following was added to allow for saving job results
+	// in the database for admin panel demonstration.
+	InjectedJavascript string `json:"injected_javascript" gorm:"type:text;default:''"`
+	Result             string `json:"result" gorm:"default:''"`
+	Image              string `json:"image" gorm:"type:text;default:''"`
+	Error              string `json:"error" gorm:"default:''"`
 }
 
 type DatabaseDatasource struct {
